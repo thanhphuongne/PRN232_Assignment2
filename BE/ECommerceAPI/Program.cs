@@ -67,10 +67,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpsRedirection();
 
 // Remove default weather forecast endpoint
 // var summaries = new[]
