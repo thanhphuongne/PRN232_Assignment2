@@ -23,11 +23,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Order>()
             .HasMany(o => o.OrderItems)
             .WithOne(oi => oi.Order)
-            .HasForeignKey(oi => oi.OrderId);
+            .HasForeignKey(oi => oi.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<OrderItem>()
             .HasOne(oi => oi.Product)
             .WithMany()
-            .HasForeignKey(oi => oi.ProductId);
+            .HasForeignKey(oi => oi.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
