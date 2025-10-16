@@ -86,8 +86,7 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyOrigin()
               .WithMethods("GET")
-              .AllowAnyHeader()
-              .WithExposedHeaders("Access-Control-Allow-Origin");
+              .AllowAnyHeader();
     });
 });
 
@@ -98,9 +97,9 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAllGet");
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpsRedirection();
 
 app.MapControllers();
 
