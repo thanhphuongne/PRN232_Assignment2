@@ -47,7 +47,6 @@ const CartPage = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify({ items: orderItems }),
       });
 
@@ -73,7 +72,6 @@ const CartPage = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify({
           bankCode: '',
           language: 'vn'
