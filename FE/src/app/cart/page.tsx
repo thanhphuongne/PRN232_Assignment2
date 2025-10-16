@@ -117,7 +117,7 @@ const CartPage = () => {
                     >
                       <MinusIcon className="h-4 w-4" />
                     </button>
-                    <span className="px-3 py-1 bg-gray-100 rounded-md min-w-[3rem] text-center">
+                    <span className="px-3 py-1 bg-gray-100 rounded-md min-w-[3rem] text-center text-gray-900">
                       {item.quantity}
                     </span>
                     <button
