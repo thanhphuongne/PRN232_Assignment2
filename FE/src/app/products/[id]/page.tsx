@@ -162,12 +162,29 @@ const ProductDetailPage = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={handleAddToCart}
-              className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Add to Cart
-            </button>
+            {user ? (
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Add to Cart
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <Link
+                  href="/login"
+                  className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center"
+                >
+                  Login to Add to Cart
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors text-center"
+                >
+                  Register to Shop
+                </Link>
+              </div>
+            )}
 
             {user && (
               <div className="flex gap-2">
