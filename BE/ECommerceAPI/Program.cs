@@ -97,7 +97,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAllGet");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();
