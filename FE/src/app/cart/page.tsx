@@ -113,7 +113,7 @@ const CartPage = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      className="p-1 rounded-md bg-gray-100 hover:bg-gray-200"
+                      className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-900"
                     >
                       <MinusIcon className="h-4 w-4" />
                     </button>
@@ -122,7 +122,7 @@ const CartPage = () => {
                     </span>
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      className="p-1 rounded-md bg-gray-100 hover:bg-gray-200"
+                      className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-900"
                     >
                       <PlusIcon className="h-4 w-4" />
                     </button>
