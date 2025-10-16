@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddCors(options =>
 {
     // Add specific origins policy for production
-    var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000", "https://localhost:3000", "https://prn232-assignment2.onrender.com" };
+    var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000", "https://localhost:3000", "https://prn232-assignment2.onrender.com", "https://prn-232-assignment2.vercel.app" };
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
         policy.WithOrigins(allowedOrigins)
@@ -88,6 +88,15 @@ builder.Services.AddCors(options =>
               .WithMethods("GET")
               .AllowAnyHeader();
     });
+
+    // Add permissive policy for development/testing
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
@@ -96,7 +105,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowAllGet");
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();
