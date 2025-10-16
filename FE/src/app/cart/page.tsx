@@ -12,6 +12,7 @@ const CartPage = () => {
   const { items, updateQuantity, removeFromCart, getTotal, clearCart } = useCart();
   const { user, token } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
@@ -31,14 +32,16 @@ const CartPage = () => {
     if (items.length === 0) return;
 
     setLoading(true);
+    setError(null);
 
     try {
+      // First, create the order
       const orderItems = items.map(item => ({
         productId: item.id,
         quantity: item.quantity,
       }));
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders`, {
+      const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,15 +50,52 @@ const CartPage = () => {
         body: JSON.stringify({ items: orderItems }),
       });
 
-      if (response.ok) {
+      if (!orderResponse.ok) {
+        let errorMessage = 'Failed to create order';
+        try {
+          const errorData = await orderResponse.json();
+          errorMessage = errorData.message || errorData.title || errorMessage;
+        } catch {
+          errorMessage = await orderResponse.text() || errorMessage;
+        }
+        setError(errorMessage);
+        return;
+      }
+
+      const orderData = await orderResponse.json();
+      const orderId = orderData.id;
+
+      // Then, create payment for the order
+      const paymentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bankCode: '',
+          language: 'vn'
+        }),
+      });
+
+      if (paymentResponse.ok) {
+        const paymentData = await paymentResponse.json();
         clearCart();
-        router.push('/orders');
+        // Redirect to VNPay payment URL
+        window.location.href = paymentData.paymentUrl;
       } else {
-        alert('Failed to place order. Please try again.');
+        let errorMessage = 'Failed to create payment';
+        try {
+          const errorData = await paymentResponse.json();
+          errorMessage = errorData.message || errorData.title || errorMessage;
+        } catch {
+          errorMessage = await paymentResponse.text() || errorMessage;
+        }
+        setError(errorMessage);
       }
     } catch (error) {
-      console.error('Error placing order:', error);
-      alert('An error occurred while placing the order.');
+      console.error('Error during checkout:', error);
+      setError('Network error occurred. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -81,6 +121,22 @@ const CartPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Checkout Error</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
