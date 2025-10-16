@@ -25,10 +25,7 @@ const RegisterPage = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
+    // Remove client-side validation to let server handle it
 
     setLoading(true);
 
