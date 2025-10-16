@@ -6,6 +6,9 @@ using System.Text;
 using ECommerceAPI.Data;
 using ECommerceAPI.Models;
 
+// Load .env file
+DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
