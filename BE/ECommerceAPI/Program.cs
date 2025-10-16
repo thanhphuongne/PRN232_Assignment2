@@ -92,7 +92,7 @@ builder.Services.AddCors(options =>
     // Add permissive policy for development/testing
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "https://prn232-assignment2.onrender.com", "https://prn-232-assignment2.vercel.app")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
