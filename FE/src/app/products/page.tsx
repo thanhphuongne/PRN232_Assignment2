@@ -71,9 +71,10 @@ const ProductsPage = () => {
 
       if (response.ok) {
         setProducts(products.filter(p => p.id !== id));
+        showNotification('Product deleted successfully!', 'success');
       } else {
         const errorText = await response.text();
-        alert(`Failed to delete product: ${errorText}`);
+        showNotification(`Failed to delete product: ${errorText}`, 'error');
       }
     } catch (error) {
       console.error('Error deleting product:', error);

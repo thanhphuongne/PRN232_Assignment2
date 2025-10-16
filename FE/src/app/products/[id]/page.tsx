@@ -78,10 +78,11 @@ const ProductDetailPage = () => {
       });
 
       if (response.ok) {
-        router.push('/products');
+        showNotification('Product deleted successfully!', 'success');
+        setTimeout(() => router.push('/products'), 1000); // Delay redirect to show notification
       } else {
         const errorText = await response.text();
-        alert(`Failed to delete product: ${errorText}`);
+        showNotification(`Failed to delete product: ${errorText}`, 'error');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
