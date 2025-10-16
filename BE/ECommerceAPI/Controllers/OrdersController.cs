@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using ECommerceAPI.Data;
 using ECommerceAPI.Models;
@@ -13,10 +14,12 @@ namespace ECommerceAPI.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public OrdersController(ApplicationDbContext context)
+    public OrdersController(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     // GET: api/orders
@@ -207,9 +210,189 @@ public class OrdersController : ControllerBase
         }
 
         order.Status = status;
+        order.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // POST: api/orders/{id}/payment
+    [HttpPost("{id}/payment")]
+    public async Task<IActionResult> CreatePayment(int id, [FromBody] CreatePaymentRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+            return Unauthorized();
+
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+
+        if (order == null)
+        {
+            return NotFound("Order not found");
+        }
+
+        if (order.PaymentStatus == "Paid")
+        {
+            return BadRequest("Order is already paid");
+        }
+
+        // Get VNPay configuration
+        var vnp_TmnCode = Environment.GetEnvironmentVariable("VNP_TMN_CODE") ?? _configuration["VnPay:TmnCode"];
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
+        var vnp_Url = Environment.GetEnvironmentVariable("VNP_URL") ?? _configuration["VnPay:Url"];
+        var vnp_Returnurl = Environment.GetEnvironmentVariable("VNP_RETURN_URL") ?? _configuration["VnPay:ReturnUrl"];
+
+        if (string.IsNullOrEmpty(vnp_TmnCode) || string.IsNullOrEmpty(vnp_HashSecret))
+        {
+            return BadRequest("VNPay configuration is missing");
+        }
+
+        // Create payment record
+        var payment = new Payment
+        {
+            OrderId = order.Id,
+            TransactionId = DateTime.Now.Ticks.ToString(),
+            Amount = order.TotalAmount,
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
+
+        // Build VNPay URL
+        var vnpay = new VnPayLibrary();
+
+        vnpay.AddRequestData("vnp_Version", VnPayLibrary.VERSION);
+        vnpay.AddRequestData("vnp_Command", "pay");
+        vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
+        vnpay.AddRequestData("vnp_Amount", ((long)(order.TotalAmount * 100)).ToString()); // Amount in smallest currency unit
+        vnpay.AddRequestData("vnp_BankCode", request.BankCode ?? "");
+        vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_CurrCode", "VND");
+        vnpay.AddRequestData("vnp_IpAddr", GetClientIpAddress(HttpContext));
+        vnpay.AddRequestData("vnp_Locale", request.Language ?? "vn");
+        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id}");
+        vnpay.AddRequestData("vnp_OrderType", "other");
+        vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
+        vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+
+        // Add billing info if provided
+        if (!string.IsNullOrEmpty(request.BillingFullName))
+        {
+            var fullName = request.BillingFullName.Trim();
+            var indexof = fullName.IndexOf(' ');
+            if (indexof > 0)
+            {
+                vnpay.AddRequestData("vnp_Bill_FirstName", fullName.Substring(0, indexof));
+                vnpay.AddRequestData("vnp_Bill_LastName", fullName.Substring(indexof + 1));
+            }
+            else
+            {
+                vnpay.AddRequestData("vnp_Bill_FirstName", fullName);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(request.BillingEmail))
+            vnpay.AddRequestData("vnp_Bill_Email", request.BillingEmail);
+
+        if (!string.IsNullOrEmpty(request.BillingMobile))
+            vnpay.AddRequestData("vnp_Bill_Mobile", request.BillingMobile);
+
+        if (!string.IsNullOrEmpty(request.BillingAddress))
+            vnpay.AddRequestData("vnp_Bill_Address", request.BillingAddress);
+
+        if (!string.IsNullOrEmpty(request.BillingCity))
+            vnpay.AddRequestData("vnp_Bill_City", request.BillingCity);
+
+        if (!string.IsNullOrEmpty(request.BillingCountry))
+            vnpay.AddRequestData("vnp_Bill_Country", request.BillingCountry);
+
+        var paymentUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
+
+        return Ok(new { PaymentUrl = paymentUrl, TransactionId = payment.TransactionId });
+    }
+
+    // GET: api/orders/payment-return
+    [HttpGet("payment-return")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PaymentReturn([FromQuery] Dictionary<string, string> vnpayData)
+    {
+        var vnpay = new VnPayLibrary();
+
+        foreach (var kvp in vnpayData)
+        {
+            vnpay.AddResponseData(kvp.Key, kvp.Value);
+        }
+
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
+        var vnp_SecureHash = vnpayData.GetValueOrDefault("vnp_SecureHash");
+
+        if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
+        {
+            var transactionId = vnpay.GetResponseData("vnp_TxnRef");
+            var responseCode = vnpay.GetResponseData("vnp_ResponseCode");
+
+            var payment = await _context.Payments
+                .Include(p => p.Order)
+                .FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+
+            if (payment != null)
+            {
+                payment.ResponseCode = responseCode;
+                payment.TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
+                payment.BankCode = vnpay.GetResponseData("vnp_BankCode");
+                payment.BankTranNo = vnpay.GetResponseData("vnp_BankTranNo");
+                payment.CardType = vnpay.GetResponseData("vnp_CardType");
+
+                if (!string.IsNullOrEmpty(vnpay.GetResponseData("vnp_PayDate")))
+                {
+                    payment.PayDate = DateTime.ParseExact(vnpay.GetResponseData("vnp_PayDate"), "yyyyMMddHHmmss", null);
+                }
+
+                if (responseCode == "00" && payment.TransactionStatus == "00")
+                {
+                    payment.Status = "Success";
+                    payment.Order!.PaymentStatus = "Paid";
+                    payment.Order.Status = "Paid";
+                }
+                else
+                {
+                    payment.Status = "Failed";
+                    payment.Order!.PaymentStatus = "Failed";
+                }
+
+                payment.UpdatedAt = DateTime.UtcNow;
+                payment.Order.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Success = responseCode == "00",
+                    Message = responseCode == "00" ? "Payment successful" : "Payment failed",
+                    TransactionId = transactionId,
+                    OrderId = payment.OrderId,
+                    Amount = payment.Amount
+                });
+            }
+        }
+
+        return BadRequest("Invalid payment response");
+    }
+
+    private string GetClientIpAddress(Microsoft.AspNetCore.Http.HttpContext context)
+    {
+        var ipAddress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = context.Connection.RemoteIpAddress?.ToString();
+        }
+        return ipAddress ?? "127.0.0.1";
     }
 }
 
@@ -222,4 +405,16 @@ public class OrderItemModel
 {
     public int ProductId { get; set; }
     public int Quantity { get; set; }
+}
+
+public class CreatePaymentRequest
+{
+    public string? BankCode { get; set; }
+    public string? Language { get; set; } = "vn";
+    public string? BillingFullName { get; set; }
+    public string? BillingEmail { get; set; }
+    public string? BillingMobile { get; set; }
+    public string? BillingAddress { get; set; }
+    public string? BillingCity { get; set; }
+    public string? BillingCountry { get; set; } = "VN";
 }
