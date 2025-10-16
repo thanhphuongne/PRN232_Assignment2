@@ -152,23 +152,23 @@ const CartPage = () => {
 
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
-                <span>Items ({items.reduce((sum, item) => sum + item.quantity, 0)})</span>
-                <span>${getTotal().toFixed(2)}</span>
+                <span className="text-gray-900">Items ({items.reduce((sum, item) => sum + item.quantity, 0)})</span>
+                <span className="text-gray-900">${getTotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>Free</span>
+                <span className="text-gray-900">Shipping</span>
+                <span className="text-gray-900">Free</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax</span>
-                <span>$0.00</span>
+                <span className="text-gray-900">Tax</span>
+                <span className="text-gray-900">$0.00</span>
               </div>
             </div>
 
             <div className="border-t pt-4">
               <div className="flex justify-between text-xl font-semibold">
-                <span>Total</span>
-                <span>${getTotal().toFixed(2)}</span>
+                <span className="text-gray-900">Total</span>
+                <span className="text-gray-900">${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
