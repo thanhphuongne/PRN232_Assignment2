@@ -98,9 +98,9 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAllGet");
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseHttpsRedirection();
 
 app.MapControllers();
 
