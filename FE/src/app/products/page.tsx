@@ -147,29 +147,12 @@ const ProductsPage = () => {
                   >
                     View Details
                   </Link>
-                  {user ? (
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                  ) : (
-                    <div className="flex-1 flex space-x-1">
-                      <Link
-                        href="/login"
-                        className="flex-1 bg-blue-600 text-white px-2 py-2 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors text-center"
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        href="/register"
-                        className="flex-1 bg-green-600 text-white px-2 py-2 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors text-center"
-                      >
-                        Register
-                      </Link>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Add to Cart
+                  </button>
                 </div>
                 {user && (
                   <div className="flex space-x-2 mt-2">
