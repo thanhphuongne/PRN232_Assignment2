@@ -79,6 +79,7 @@ const ProductsPage = () => {
       price: product.price,
       imageUrl: product.imageUrl,
     });
+    alert('Product added to cart successfully!');
   };
 
   if (loading) {

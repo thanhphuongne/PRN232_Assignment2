@@ -88,7 +88,7 @@ const ProductDetailPage = () => {
         price: product.price,
         imageUrl: product.imageUrl,
       });
-      alert('Product added to cart!');
+      alert('Product added to cart successfully!');
     }
   };
 
