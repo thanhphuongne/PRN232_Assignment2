@@ -80,6 +80,15 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
               .WithExposedHeaders("Access-Control-Allow-Origin");
     });
+
+    // Add fallback policy for GET requests without credentials (for products, etc.)
+    options.AddPolicy("AllowAllGet", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .WithMethods("GET")
+              .AllowAnyHeader()
+              .WithExposedHeaders("Access-Control-Allow-Origin");
+    });
 });
 
 var app = builder.Build();

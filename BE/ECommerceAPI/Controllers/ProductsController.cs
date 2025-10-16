@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ECommerceAPI.Data;
@@ -8,6 +9,7 @@ namespace ECommerceAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableCors("AllowAllGet")]
 public class ProductsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
