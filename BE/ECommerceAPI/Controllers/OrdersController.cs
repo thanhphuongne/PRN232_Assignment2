@@ -27,11 +27,40 @@ public class OrdersController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        return await _context.Orders
+        var orders = await _context.Orders
             .Where(o => o.UserId == userId)
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
             .ToListAsync();
+
+        // Create response DTOs to avoid circular references
+        var ordersResponse = orders.Select(order => new
+        {
+            order.Id,
+            order.UserId,
+            order.TotalAmount,
+            order.Status,
+            order.CreatedAt,
+            OrderItems = order.OrderItems.Select(oi => new
+            {
+                oi.Id,
+                oi.ProductId,
+                oi.Quantity,
+                oi.Price,
+                Product = new
+                {
+                    oi.Product.Id,
+                    oi.Product.Name,
+                    oi.Product.Description,
+                    oi.Product.Price,
+                    oi.Product.ImageUrl,
+                    oi.Product.CreatedAt,
+                    oi.Product.UpdatedAt
+                }
+            }).ToList()
+        }).ToList();
+
+        return Ok(ordersResponse);
     }
 
     // GET: api/orders/5
@@ -52,7 +81,34 @@ public class OrdersController : ControllerBase
             return NotFound();
         }
 
-        return order;
+        // Create a response DTO to avoid circular references
+        var orderResponse = new
+        {
+            order.Id,
+            order.UserId,
+            order.TotalAmount,
+            order.Status,
+            order.CreatedAt,
+            OrderItems = order.OrderItems.Select(oi => new
+            {
+                oi.Id,
+                oi.ProductId,
+                oi.Quantity,
+                oi.Price,
+                Product = new
+                {
+                    oi.Product.Id,
+                    oi.Product.Name,
+                    oi.Product.Description,
+                    oi.Product.Price,
+                    oi.Product.ImageUrl,
+                    oi.Product.CreatedAt,
+                    oi.Product.UpdatedAt
+                }
+            }).ToList()
+        };
+
+        return Ok(orderResponse);
     }
 
     // POST: api/orders
@@ -106,7 +162,34 @@ public class OrdersController : ControllerBase
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+        // Create a response DTO to avoid circular references
+        var orderResponse = new
+        {
+            order.Id,
+            order.UserId,
+            order.TotalAmount,
+            order.Status,
+            order.CreatedAt,
+            OrderItems = order.OrderItems.Select(oi => new
+            {
+                oi.Id,
+                oi.ProductId,
+                oi.Quantity,
+                oi.Price,
+                Product = new
+                {
+                    oi.Product.Id,
+                    oi.Product.Name,
+                    oi.Product.Description,
+                    oi.Product.Price,
+                    oi.Product.ImageUrl,
+                    oi.Product.CreatedAt,
+                    oi.Product.UpdatedAt
+                }
+            }).ToList()
+        };
+
+        return CreatedAtAction("GetOrder", new { id = order.Id }, orderResponse);
     }
 
     // PUT: api/orders/5/status

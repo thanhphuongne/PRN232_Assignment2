@@ -29,6 +29,7 @@ interface Order {
 const OrdersPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -42,7 +43,7 @@ const OrdersPage = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prn232-assignment2.onrender.com'}/api/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -51,10 +52,27 @@ const OrdersPage = () => {
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
+        setError(null);
       } else if (response.status === 401) {
         router.push('/login');
+      } else {
+        let errorMessage = 'Failed to load orders';
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.title) {
+            errorMessage = errorData.title;
+          }
+        } catch {
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        setError(errorMessage);
+        console.error('Error fetching orders:', response.status, response.statusText);
       }
     } catch (error) {
+      const errorMessage = 'Network error. Please check your connection and try again.';
+      setError(errorMessage);
       console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
@@ -92,7 +110,13 @@ const OrdersPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
 
-      {orders.length === 0 ? (
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
+
+      {orders.length === 0 && !error ? (
         <div className="text-center py-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">No orders yet</h2>
           <p className="text-gray-600 mb-6">Start shopping to see your orders here!</p>
