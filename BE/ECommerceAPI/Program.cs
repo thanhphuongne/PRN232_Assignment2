@@ -78,6 +78,17 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
               .WithExposedHeaders("Access-Control-Allow-Origin");
     });
+
+    // Add specific origins policy for production
+    var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000", "https://localhost:3000" };
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .WithExposedHeaders("Access-Control-Allow-Origin");
+    });
 });
 
 var app = builder.Build();
@@ -86,7 +97,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();
