@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +11,7 @@ namespace ECommerceAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableCors("AllowSpecificOrigins")]
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
