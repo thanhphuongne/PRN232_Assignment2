@@ -92,6 +92,13 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
+        // Check if product is referenced by any order items
+        var hasOrderItems = await _context.OrderItems.AnyAsync(oi => oi.ProductId == id);
+        if (hasOrderItems)
+        {
+            return BadRequest("Cannot delete product that is referenced by existing orders.");
+        }
+
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
 

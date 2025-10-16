@@ -28,7 +28,7 @@ const ProductsPage = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/products`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prn232-assignment2.onrender.com'}/api/products`);
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -45,7 +45,7 @@ const ProductsPage = () => {
 
     setDeleteLoading(id);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/products/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prn232-assignment2.onrender.com'}/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -55,7 +55,8 @@ const ProductsPage = () => {
       if (response.ok) {
         setProducts(products.filter(p => p.id !== id));
       } else {
-        alert('Failed to delete product');
+        const errorText = await response.text();
+        alert(`Failed to delete product: ${errorText}`);
       }
     } catch (error) {
       console.error('Error deleting product:', error);
