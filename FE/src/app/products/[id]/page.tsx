@@ -77,6 +77,10 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     if (product) {
       addToCart({
         id: product.id,

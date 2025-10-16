@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +20,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     fetchProducts();
@@ -39,6 +41,10 @@ const HomePage = () => {
   };
 
   const handleAddToCart = (product: Product) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,

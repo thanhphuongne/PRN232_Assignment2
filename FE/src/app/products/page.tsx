@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { TrashIcon, PencilIcon } from 'lucide-react';
@@ -21,6 +22,7 @@ const ProductsPage = () => {
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
   const { user, token } = useAuth();
   const { addToCart } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     fetchProducts();
@@ -67,6 +69,10 @@ const ProductsPage = () => {
   };
 
   const handleAddToCart = (product: Product) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,
