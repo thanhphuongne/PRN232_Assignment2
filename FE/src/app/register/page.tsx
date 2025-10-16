@@ -142,7 +142,7 @@ const RegisterPage = () => {
 
           {error && (
             <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
+              <div className="text-sm text-red-700 whitespace-pre-line">{error}</div>
             </div>
           )}
 

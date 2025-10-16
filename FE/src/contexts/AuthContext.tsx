@@ -113,7 +113,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (Array.isArray(errorData)) {
             // Handle ASP.NET Identity errors array format
             const errorMessages = errorData.map((error: { description?: string; message?: string; [key: string]: unknown }) => error.description || error.message || String(error));
-            errorMessage = errorMessages.join('. ');
+            errorMessage = errorMessages.join('\n• ');
+            errorMessage = '• ' + errorMessage;
           } else if (errorData.errors) {
             // Handle ASP.NET Identity errors object format
             const errorMessages = [];
