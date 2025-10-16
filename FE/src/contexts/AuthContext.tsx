@@ -109,8 +109,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         let errorMessage = 'Registration failed';
         try {
           const errorData = await response.json();
-          if (errorData.errors) {
-            // Handle ASP.NET Identity errors
+          console.log('Error data:', errorData); // Debug log
+          if (Array.isArray(errorData)) {
+            // Handle ASP.NET Identity errors array format
+            const errorMessages = errorData.map((error: any) => error.description || error.message || error);
+            errorMessage = errorMessages.join('. ');
+          } else if (errorData.errors) {
+            // Handle ASP.NET Identity errors object format
             const errorMessages = [];
             for (const field in errorData.errors) {
               errorMessages.push(...errorData.errors[field]);
@@ -121,7 +126,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else if (errorData.title) {
             errorMessage = errorData.title;
           }
-        } catch {
+        } catch (parseError) {
+          console.log('Parse error:', parseError); // Debug log
           // If we can't parse JSON, use status text
           errorMessage = response.statusText || 'Registration failed';
         }
