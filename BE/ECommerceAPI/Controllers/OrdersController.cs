@@ -239,15 +239,15 @@ public class OrdersController : ControllerBase
             return BadRequest("Order is already paid");
         }
 
-        // Get VNPay configuration
-        var vnp_TmnCode = Environment.GetEnvironmentVariable("VNP_TMN_CODE") ?? _configuration["VnPay:TmnCode"];
-        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
-        var vnp_Url = Environment.GetEnvironmentVariable("VNP_URL") ?? _configuration["VnPay:Url"];
-        var vnp_Returnurl = Environment.GetEnvironmentVariable("VNP_RETURN_URL") ?? _configuration["VnPay:ReturnUrl"];
+        // Get VNPay configuration from environment variables only
+        var vnp_TmnCode = Environment.GetEnvironmentVariable("VNP_TMN_CODE");
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET");
+        var vnp_Url = Environment.GetEnvironmentVariable("VNP_URL");
+        var vnp_Returnurl = Environment.GetEnvironmentVariable("VNP_RETURN_URL");
 
-        if (string.IsNullOrEmpty(vnp_TmnCode) || string.IsNullOrEmpty(vnp_HashSecret))
+        if (string.IsNullOrEmpty(vnp_TmnCode) || string.IsNullOrEmpty(vnp_HashSecret) || string.IsNullOrEmpty(vnp_Url) || string.IsNullOrEmpty(vnp_Returnurl))
         {
-            return BadRequest("VNPay configuration is missing");
+            return BadRequest("VNPay configuration is missing. Please set VNP_TMN_CODE, VNP_HASH_SECRET, VNP_URL, and VNP_RETURN_URL environment variables");
         }
 
         // Create payment record
@@ -329,7 +329,7 @@ public class OrdersController : ControllerBase
             vnpay.AddResponseData(kvp.Key, kvp.Value);
         }
 
-        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET");
         var vnp_SecureHash = vnpayData.GetValueOrDefault("vnp_SecureHash");
 
         if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
