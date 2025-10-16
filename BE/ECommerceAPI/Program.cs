@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddCors(options =>
 {
     // Add specific origins policy for production
-    var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000", "https://localhost:3000" };
+    var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000", "https://localhost:3000", "https://prn232-assignment2.onrender.com" };
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
         policy.WithOrigins(allowedOrigins)
