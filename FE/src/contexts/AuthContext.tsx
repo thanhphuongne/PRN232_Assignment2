@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (firstName: string, lastName: string, email: string, password: string) => Promise<boolean>;
+  register: (firstName: string, lastName: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (firstName: string, lastName: string, email: string, password: string): Promise<boolean> => {
+  const register = async (firstName: string, lastName: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prn232-assignment2.onrender.com'}/api/auth/register`, {
         method: 'POST',
@@ -103,12 +103,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(userData));
-        return true;
+        return { success: true };
+      } else {
+        // Try to get error details from response
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          if (errorData.errors) {
+            // Handle ASP.NET Identity errors
+            const errorMessages = [];
+            for (const field in errorData.errors) {
+              errorMessages.push(...errorData.errors[field]);
+            }
+            errorMessage = errorMessages.join('. ');
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.title) {
+            errorMessage = errorData.title;
+          }
+        } catch {
+          // If we can't parse JSON, use status text
+          errorMessage = response.statusText || 'Registration failed';
+        }
+        return { success: false, error: errorMessage };
       }
-      return false;
     } catch (error) {
       console.error('Register error:', error);
-      return false;
+      return { success: false, error: 'Network error. Please try again.' };
     }
   };
 

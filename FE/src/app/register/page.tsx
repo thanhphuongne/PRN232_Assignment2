@@ -33,11 +33,11 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const success = await register(firstName, lastName, email, password);
-      if (success) {
+      const result = await register(firstName, lastName, email, password);
+      if (result.success) {
         router.push('/');
       } else {
-        setError('Registration failed. Email might already be in use.');
+        setError(result.error || 'Registration failed. Email might already be in use.');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
