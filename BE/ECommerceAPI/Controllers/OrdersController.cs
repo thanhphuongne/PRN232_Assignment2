@@ -242,10 +242,10 @@ public class OrdersController : ControllerBase
         }
 
         // Get VNPay configuration from environment variables only
-        var vnp_TmnCode = Environment.GetEnvironmentVariable("VNP_TMN_CODE");
-        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET");
-        var vnp_Url = Environment.GetEnvironmentVariable("VNP_URL");
-        var vnp_Returnurl = Environment.GetEnvironmentVariable("VNP_RETURN_URL");
+        var vnp_TmnCode = Environment.GetEnvironmentVariable("VNP_TMN_CODE") ?? _configuration["VnPay:TmnCode"];
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
+        var vnp_Url = Environment.GetEnvironmentVariable("VNP_URL") ?? _configuration["VnPay:Url"];
+        var vnp_Returnurl = Environment.GetEnvironmentVariable("VNP_RETURN_URL") ?? _configuration["VnPay:ReturnUrl"];
 
         if (string.IsNullOrEmpty(vnp_TmnCode) || string.IsNullOrEmpty(vnp_HashSecret) || string.IsNullOrEmpty(vnp_Url) || string.IsNullOrEmpty(vnp_Returnurl))
         {
@@ -272,11 +272,21 @@ public class OrdersController : ControllerBase
         vnpay.AddRequestData("vnp_Command", "pay");
         vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
         vnpay.AddRequestData("vnp_Amount", ((long)(order.TotalAmount * 100)).ToString()); // Amount in smallest currency unit
-        vnpay.AddRequestData("vnp_BankCode", request.BankCode ?? "");
+        if (!string.IsNullOrEmpty(request.BankCode))
+        {
+            vnpay.AddRequestData("vnp_BankCode", request.BankCode);
+        }
         vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", "VND");
-        vnpay.AddRequestData("vnp_IpAddr", GetClientIpAddress(HttpContext));
-        vnpay.AddRequestData("vnp_Locale", request.Language ?? "vn");
+        vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(HttpContext));
+        if (!string.IsNullOrEmpty(request.Language))
+        {
+            vnpay.AddRequestData("vnp_Locale", request.Language);
+        }
+        else
+        {
+            vnpay.AddRequestData("vnp_Locale", "vn");
+        }
         vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id}");
         vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);

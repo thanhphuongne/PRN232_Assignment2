@@ -73,11 +73,36 @@ public class VnPayLibrary
 
 public class Utils
 {
-    public static string GetIpAddress()
+    public static string GetIpAddress(Microsoft.AspNetCore.Http.HttpContext context)
     {
-        // In ASP.NET Core, get IP address from HttpContext
-        // This will be called from controller context
-        return "127.0.0.1"; // Placeholder - will be replaced with actual implementation
+        // Try X-Forwarded-For header first (for proxies/load balancers)
+        var ipAddress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(ipAddress))
+        {
+            // X-Forwarded-For can contain multiple IPs, take the first one
+            ipAddress = ipAddress.Split(',')[0].Trim();
+        }
+
+        // If X-Forwarded-For is not available, try X-Real-IP
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = context.Request.Headers["X-Real-IP"].FirstOrDefault();
+        }
+
+        // Fallback to RemoteIpAddress
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = context.Connection.RemoteIpAddress?.ToString();
+        }
+
+        // Handle IPv4-mapped IPv6 addresses
+        if (!string.IsNullOrEmpty(ipAddress) && ipAddress.StartsWith("::ffff:"))
+        {
+            ipAddress = ipAddress.Substring(7);
+        }
+
+        // Final fallback
+        return ipAddress ?? "127.0.0.1";
     }
 }
 
