@@ -8,6 +8,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { TrashIcon, PencilIcon } from 'lucide-react';
 
+// Custom notification hook
+const useNotification = () => {
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  return { notification, showNotification };
+};
+
 interface Product {
   id: number;
   name: string;
@@ -23,6 +37,7 @@ const ProductsPage = () => {
   const { user, token } = useAuth();
   const { addToCart } = useCart();
   const router = useRouter();
+  const { notification, showNotification } = useNotification();
 
   useEffect(() => {
     fetchProducts();
@@ -79,7 +94,7 @@ const ProductsPage = () => {
       price: product.price,
       imageUrl: product.imageUrl,
     });
-    alert('Product added to cart successfully!');
+    showNotification('Product added to cart successfully!', 'success');
   };
 
   if (loading) {
@@ -92,6 +107,23 @@ const ProductsPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Custom Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center">
+            <span className="mr-2">
+              {notification.type === 'success' ? '✓' :
+               notification.type === 'error' ? '✕' : 'ℹ'}
+            </span>
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">All Products</h1>
         {user && (

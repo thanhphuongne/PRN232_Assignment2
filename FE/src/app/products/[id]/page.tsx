@@ -8,6 +8,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { ArrowLeftIcon, PencilIcon, TrashIcon } from 'lucide-react';
 
+// Custom notification hook
+const useNotification = () => {
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  return { notification, showNotification };
+};
+
 interface Product {
   id: number;
   name: string;
@@ -26,6 +40,7 @@ const ProductDetailPage = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { user, token } = useAuth();
   const { addToCart } = useCart();
+  const { notification, showNotification } = useNotification();
 
   const productId = params.id as string;
 
@@ -88,7 +103,7 @@ const ProductDetailPage = () => {
         price: product.price,
         imageUrl: product.imageUrl,
       });
-      alert('Product added to cart successfully!');
+      showNotification('Product added to cart successfully!', 'success');
     }
   };
 
@@ -118,6 +133,23 @@ const ProductDetailPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Custom Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center">
+            <span className="mr-2">
+              {notification.type === 'success' ? '✓' :
+               notification.type === 'error' ? '✕' : 'ℹ'}
+            </span>
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <Link
           href="/products"

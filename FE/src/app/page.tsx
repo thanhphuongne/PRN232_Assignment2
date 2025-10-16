@@ -7,6 +7,20 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Custom notification hook
+const useNotification = () => {
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  return { notification, showNotification };
+};
+
 interface Product {
   id: number;
   name: string;
@@ -21,6 +35,7 @@ const HomePage = () => {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const { notification, showNotification } = useNotification();
 
   useEffect(() => {
     fetchProducts();
@@ -51,7 +66,8 @@ const HomePage = () => {
       price: product.price,
       imageUrl: product.imageUrl,
     });
-    alert('Product added to cart successfully!');
+    // Custom notification instead of alert
+    showNotification('Product added to cart successfully!', 'success');
   };
 
   if (loading) {
@@ -64,6 +80,23 @@ const HomePage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Custom Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center">
+            <span className="mr-2">
+              {notification.type === 'success' ? '✓' :
+               notification.type === 'error' ? '✕' : 'ℹ'}
+            </span>
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 mb-12 text-white">
         <div className="max-w-3xl">
