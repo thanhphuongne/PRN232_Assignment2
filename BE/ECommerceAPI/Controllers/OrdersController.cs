@@ -274,7 +274,8 @@ public class OrdersController : ControllerBase
         // Convert USD to VND (approximate rate: 1 USD = 24,000 VND) and multiply by 100 for VNPay format
         var usdToVndRate = 24000m;
         var amountInVnd = order.TotalAmount * usdToVndRate;
-        vnpay.AddRequestData("vnp_Amount", ((long)(amountInVnd * 100)).ToString()); // Amount in smallest currency unit
+        var finalAmount = Math.Max(10000, (long)(amountInVnd * 100)); // Minimum 100,000 VND (10 USD)
+        vnpay.AddRequestData("vnp_Amount", finalAmount.ToString()); // Amount in smallest currency unit
         if (!string.IsNullOrEmpty(request.BankCode))
         {
             vnpay.AddRequestData("vnp_BankCode", request.BankCode);
@@ -291,10 +292,10 @@ public class OrdersController : ControllerBase
             vnpay.AddRequestData("vnp_Locale", "vn");
         }
         vnpay.AddRequestData("vnp_OrderInfo", $"Payment for order {order.Id} - {DateTime.Now:yyyyMMddHHmmss}");
-        vnpay.AddRequestData("vnp_OrderType", "topup");
+        vnpay.AddRequestData("vnp_OrderType", "fashion");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
         vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
-        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(5).ToString("yyyyMMddHHmmss"));
 
         // Add billing info if provided
         if (!string.IsNullOrEmpty(request.BillingFullName))
