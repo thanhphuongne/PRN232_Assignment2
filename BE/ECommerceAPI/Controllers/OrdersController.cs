@@ -252,13 +252,13 @@ public class OrdersController : ControllerBase
             return BadRequest("VNPay configuration is missing. Please set VNP_TMN_CODE, VNP_HASH_SECRET, VNP_URL, and VNP_RETURN_URL environment variables");
         }
 
-        // Create payment record
+        // Create payment record (similar to OrderInfo in sample)
         var payment = new Payment
         {
             OrderId = order.Id,
             TransactionId = DateTime.Now.Ticks.ToString(),
             Amount = order.TotalAmount,
-            Status = "Pending",
+            Status = "0", // "0": Trạng thái thanh toán "chờ thanh toán" hoặc "Pending"
             CreatedAt = DateTime.UtcNow
         };
 
@@ -274,8 +274,8 @@ public class OrdersController : ControllerBase
         // Convert USD to VND (approximate rate: 1 USD = 24,000 VND) and multiply by 100 for VNPay format
         var usdToVndRate = 24000m;
         var amountInVnd = order.TotalAmount * usdToVndRate;
-        var finalAmount = Math.Max(10000, (long)(amountInVnd * 100)); // Minimum 100,000 VND (10 USD)
-        vnpay.AddRequestData("vnp_Amount", finalAmount.ToString()); // Amount in smallest currency unit
+        var finalAmount = (long)(amountInVnd * 100); // VNPay expects amount in smallest currency unit (multiply by 100)
+        vnpay.AddRequestData("vnp_Amount", finalAmount.ToString());
         if (!string.IsNullOrEmpty(request.BankCode))
         {
             vnpay.AddRequestData("vnp_BankCode", request.BankCode);
@@ -283,19 +283,12 @@ public class OrdersController : ControllerBase
         vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", "VND");
         vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(HttpContext));
-        if (!string.IsNullOrEmpty(request.Language))
-        {
-            vnpay.AddRequestData("vnp_Locale", request.Language);
-        }
-        else
-        {
-            vnpay.AddRequestData("vnp_Locale", "vn");
-        }
-        vnpay.AddRequestData("vnp_OrderInfo", $"Payment for order {order.Id} - {DateTime.Now:yyyyMMddHHmmss}");
-        vnpay.AddRequestData("vnp_OrderType", "fashion");
+        vnpay.AddRequestData("vnp_Locale", "vn");
+        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id}: {DateTime.Now:yyyyMMddHHmmss}");
+        vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
         vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
-        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(5).ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
 
         // Add billing info if provided
         if (!string.IsNullOrEmpty(request.BillingFullName))
