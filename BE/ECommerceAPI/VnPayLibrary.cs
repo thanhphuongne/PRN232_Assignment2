@@ -37,8 +37,8 @@ public class VnPayLibrary
 
     public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
     {
-        // Build query string from sorted parameters
-        var data = string.Join("&", _requestData.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
+        // Build query string from sorted parameters with URL encoding
+        var data = string.Join("&", _requestData.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
         var querystring = data;
 
         // Generate signature using SHA256 (matching sample code)
