@@ -11,7 +11,7 @@ namespace ECommerceAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[EnableCors("AllowSpecificOrigins")]
+[EnableCors("AllowFrontend")]
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;

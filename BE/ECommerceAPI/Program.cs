@@ -81,6 +81,16 @@ builder.Services.AddCors(options =>
               .WithExposedHeaders("Access-Control-Allow-Origin");
     });
 
+    // Add policy for frontend domain specifically
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://prn-232-assignment2.vercel.app")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .WithExposedHeaders("Access-Control-Allow-Origin");
+    });
+
     // Add fallback policy for GET requests without credentials (for products, etc.)
     options.AddPolicy("AllowAllGet", policy =>
     {
@@ -105,7 +115,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();

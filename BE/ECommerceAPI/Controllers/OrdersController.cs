@@ -12,7 +12,7 @@ namespace ECommerceAPI.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-[EnableCors("AllowSpecificOrigins")]
+[EnableCors("AllowFrontend")]
 public class OrdersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
