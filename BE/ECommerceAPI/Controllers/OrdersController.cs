@@ -288,7 +288,7 @@ public class OrdersController : ControllerBase
         vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
         vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
-        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(30).ToString("yyyyMMddHHmmss"));
 
         // Add billing info if provided
         if (!string.IsNullOrEmpty(request.BillingFullName))
