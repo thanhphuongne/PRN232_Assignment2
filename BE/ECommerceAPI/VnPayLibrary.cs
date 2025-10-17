@@ -37,10 +37,12 @@ public class VnPayLibrary
 
     public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
     {
-        var data = string.Join("&", _requestData.Select(kvp => $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
+        // Build query string from sorted parameters
+        var data = string.Join("&", _requestData.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
         var querystring = data;
 
-        var vnp_SecureHash = HmacSHA512(vnp_HashSecret, data);
+        // Generate signature using SHA256 (matching sample code)
+        var vnp_SecureHash = HmacSHA256(vnp_HashSecret, data);
         querystring += $"&vnp_SecureHash={vnp_SecureHash}";
 
         return $"{baseUrl}?{querystring}";
@@ -61,6 +63,13 @@ public class VnPayLibrary
             .Select(kvp => $"{kvp.Key}={kvp.Value}"));
 
         return data;
+    }
+
+    private string HmacSHA256(string key, string inputData)
+    {
+        var hash = new HMACSHA256(Encoding.UTF8.GetBytes(key));
+        var hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(inputData));
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }
 
     private string HmacSHA512(string key, string inputData)
