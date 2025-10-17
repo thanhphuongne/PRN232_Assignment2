@@ -271,7 +271,10 @@ public class OrdersController : ControllerBase
         vnpay.AddRequestData("vnp_Version", VnPayLibrary.VERSION);
         vnpay.AddRequestData("vnp_Command", "pay");
         vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
-        vnpay.AddRequestData("vnp_Amount", ((long)(order.TotalAmount * 100)).ToString()); // Amount in smallest currency unit
+        // Convert USD to VND (approximate rate: 1 USD = 24,000 VND) and multiply by 100 for VNPay format
+        var usdToVndRate = 24000m;
+        var amountInVnd = order.TotalAmount * usdToVndRate;
+        vnpay.AddRequestData("vnp_Amount", ((long)(amountInVnd * 100)).ToString()); // Amount in smallest currency unit
         if (!string.IsNullOrEmpty(request.BankCode))
         {
             vnpay.AddRequestData("vnp_BankCode", request.BankCode);

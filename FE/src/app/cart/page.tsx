@@ -41,7 +41,7 @@ const CartPage = () => {
         quantity: item.quantity,
       }));
 
-      const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders`, {
+      const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5285'}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
