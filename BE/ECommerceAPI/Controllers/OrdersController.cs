@@ -290,11 +290,11 @@ public class OrdersController : ControllerBase
         {
             vnpay.AddRequestData("vnp_Locale", "vn");
         }
-        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id}");
-        vnpay.AddRequestData("vnp_OrderType", "other");
+        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id} - {DateTime.Now:yyyyMMddHHmmss}");
+        vnpay.AddRequestData("vnp_OrderType", "billpayment");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
         vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
-        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(60).ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(30).ToString("yyyyMMddHHmmss"));
 
         // Add billing info if provided
         if (!string.IsNullOrEmpty(request.BillingFullName))
