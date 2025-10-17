@@ -284,7 +284,7 @@ public class OrdersController : ControllerBase
         vnpay.AddRequestData("vnp_CurrCode", "VND");
         vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(HttpContext));
         vnpay.AddRequestData("vnp_Locale", "vn");
-        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.Id}: {DateTime.Now:yyyyMMddHHmmss}");
+        vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang:{order.Id}");
         vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
         vnpay.AddRequestData("vnp_TxnRef", payment.TransactionId);
