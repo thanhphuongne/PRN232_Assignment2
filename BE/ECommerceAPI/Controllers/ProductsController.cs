@@ -9,7 +9,7 @@ namespace ECommerceAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[EnableCors("AllowAllGet")]
+[EnableCors("AllowFrontend")]
 public class ProductsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
