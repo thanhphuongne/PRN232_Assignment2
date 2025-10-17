@@ -341,7 +341,7 @@ public class OrdersController : ControllerBase
             vnpay.AddResponseData(kvp.Key, kvp.Value);
         }
 
-        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET");
+        var vnp_HashSecret = Environment.GetEnvironmentVariable("VNP_HASH_SECRET") ?? _configuration["VnPay:HashSecret"];
         var vnp_SecureHash = vnpayData.GetValueOrDefault("vnp_SecureHash");
 
         if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
